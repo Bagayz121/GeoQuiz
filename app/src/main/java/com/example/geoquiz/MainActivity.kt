@@ -17,16 +17,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.geoquiz.ui.theme.GeoQuizTheme
 
-// Модель данных для вопроса
 data class Question(val text: String, val answer: Boolean)
 
-// Список вопросов
 val questionBank = listOf(
     Question("Canberra is the capital of Australia.", true),
     Question("The Pacific Ocean is larger than the Atlantic Ocean.", true),
@@ -52,6 +54,10 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun QuizScreen(modifier: Modifier = Modifier) {
+    // Состояние: индекс текущего вопроса
+    var currentIndex by remember { mutableStateOf(0) }
+    val currentQuestion = questionBank[currentIndex]
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -59,15 +65,13 @@ fun QuizScreen(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Текст вопроса (пока просто первый вопрос из списка)
         Text(
-            text = questionBank[0].text,
+            text = currentQuestion.text,
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(Modifier.height(32.dp))
 
-        // Кнопки True / False
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
@@ -78,8 +82,15 @@ fun QuizScreen(modifier: Modifier = Modifier) {
 
         Spacer(Modifier.height(32.dp))
 
-        // Кнопка Next
-        Button(onClick = { }, modifier = Modifier.fillMaxWidth()) {
+        // Кнопка Next переключает вопрос (с защитой от выхода за границы массива)
+        Button(
+            onClick = {
+                if (currentIndex < questionBank.size - 1) {
+                    currentIndex++
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text("NEXT")
         }
     }
