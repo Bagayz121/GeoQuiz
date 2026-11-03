@@ -54,8 +54,12 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun QuizScreen(modifier: Modifier = Modifier) {
-    // Состояние: индекс текущего вопроса
     var currentIndex by remember { mutableStateOf(0) }
+    // Состояние: ответил ли пользователь на текущий вопрос
+    var answered by remember { mutableStateOf(false) }
+    // Состояние: был ли ответ правильным
+    var isCorrect by remember { mutableStateOf(false) }
+
     val currentQuestion = questionBank[currentIndex]
 
     Column(
@@ -72,21 +76,38 @@ fun QuizScreen(modifier: Modifier = Modifier) {
         )
         Spacer(Modifier.height(32.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Button(onClick = { }) { Text("TRUE") }
-            Button(onClick = { }) { Text("FALSE") }
+        // Если не ответили - показываем кнопки. Если ответили - скрываем и показываем текст
+        if (!answered) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Button(onClick = {
+                    isCorrect = (true == currentQuestion.answer)
+                    answered = true
+                }) { Text("TRUE") }
+
+                Button(onClick = {
+                    isCorrect = (false == currentQuestion.answer)
+                    answered = true
+                }) { Text("FALSE") }
+            }
+        } else {
+            Text(
+                text = if (isCorrect) "Correct!" else "Incorrect!",
+                style = MaterialTheme.typography.titleLarge,
+                color = if (isCorrect) androidx.compose.ui.graphics.Color.Green else androidx.compose.ui.graphics.Color.Red
+            )
         }
 
         Spacer(Modifier.height(32.dp))
 
-        // Кнопка Next переключает вопрос (с защитой от выхода за границы массива)
+        // Кнопка Next теперь также сбрасывает состояние answered
         Button(
             onClick = {
                 if (currentIndex < questionBank.size - 1) {
                     currentIndex++
+                    answered = false
                 }
             },
             modifier = Modifier.fillMaxWidth()
