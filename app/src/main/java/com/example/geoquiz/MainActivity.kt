@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.geoquiz.ui.theme.GeoQuizTheme
@@ -55,10 +56,10 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun QuizScreen(modifier: Modifier = Modifier) {
     var currentIndex by remember { mutableStateOf(0) }
-    // Состояние: ответил ли пользователь на текущий вопрос
     var answered by remember { mutableStateOf(false) }
-    // Состояние: был ли ответ правильным
     var isCorrect by remember { mutableStateOf(false) }
+    // Состояние для подсчета очков
+    var score by remember { mutableStateOf(0) }
 
     val currentQuestion = questionBank[currentIndex]
 
@@ -69,6 +70,10 @@ fun QuizScreen(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        // Индикатор прогресса и очков
+        Text("Вопрос ${currentIndex + 1} из ${questionBank.size} | Очки: $score")
+        Spacer(Modifier.height(16.dp))
+
         Text(
             text = currentQuestion.text,
             style = MaterialTheme.typography.headlineSmall,
@@ -76,7 +81,6 @@ fun QuizScreen(modifier: Modifier = Modifier) {
         )
         Spacer(Modifier.height(32.dp))
 
-        // Если не ответили - показываем кнопки. Если ответили - скрываем и показываем текст
         if (!answered) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -84,11 +88,13 @@ fun QuizScreen(modifier: Modifier = Modifier) {
             ) {
                 Button(onClick = {
                     isCorrect = (true == currentQuestion.answer)
+                    if (isCorrect) score++
                     answered = true
                 }) { Text("TRUE") }
 
                 Button(onClick = {
                     isCorrect = (false == currentQuestion.answer)
+                    if (isCorrect) score++
                     answered = true
                 }) { Text("FALSE") }
             }
@@ -96,13 +102,12 @@ fun QuizScreen(modifier: Modifier = Modifier) {
             Text(
                 text = if (isCorrect) "Correct!" else "Incorrect!",
                 style = MaterialTheme.typography.titleLarge,
-                color = if (isCorrect) androidx.compose.ui.graphics.Color.Green else androidx.compose.ui.graphics.Color.Red
+                color = if (isCorrect) Color.Green else Color.Red
             )
         }
 
         Spacer(Modifier.height(32.dp))
 
-        // Кнопка Next теперь также сбрасывает состояние answered
         Button(
             onClick = {
                 if (currentIndex < questionBank.size - 1) {
