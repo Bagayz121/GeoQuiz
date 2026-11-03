@@ -12,10 +12,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,10 +60,13 @@ fun QuizScreen(modifier: Modifier = Modifier) {
     var currentIndex by remember { mutableStateOf(0) }
     var answered by remember { mutableStateOf(false) }
     var isCorrect by remember { mutableStateOf(false) }
-    // Состояние для подсчета очков
     var score by remember { mutableStateOf(0) }
 
+    // Состояние для показа всплывающего окна
+    var showScoreDialog by remember { mutableStateOf(false) }
+
     val currentQuestion = questionBank[currentIndex]
+    val isLastQuestion = currentIndex == questionBank.size - 1
 
     Column(
         modifier = modifier
@@ -70,7 +75,6 @@ fun QuizScreen(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Индикатор прогресса и очков
         Text("Вопрос ${currentIndex + 1} из ${questionBank.size} | Очки: $score")
         Spacer(Modifier.height(16.dp))
 
@@ -108,17 +112,50 @@ fun QuizScreen(modifier: Modifier = Modifier) {
 
         Spacer(Modifier.height(32.dp))
 
-        Button(
-            onClick = {
-                if (currentIndex < questionBank.size - 1) {
-                    currentIndex++
-                    answered = false
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("NEXT")
+        // Если это НЕ последний вопрос ИЛИ пользователь еще не ответил на него - показываем Next
+        if (!isLastQuestion || !answered) {
+            Button(
+                onClick = {
+                    if (currentIndex < questionBank.size - 1) {
+                        currentIndex++
+                        answered = false
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("NEXT")
+            }
         }
+
+        // Если это последний вопрос и пользователь ответил - показываем кнопку результатов
+        if (isLastQuestion && answered) {
+            Button(
+                onClick = { showScoreDialog = true },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("ПОКАЗАТЬ РЕЗУЛЬТАТ")
+            }
+        }
+    }
+
+    // Всплывающее окно с результатом
+    if (showScoreDialog) {
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text("Тест завершен!") },
+            text = { Text("Ваш результат: $score из ${questionBank.size}") },
+            confirmButton = {
+                TextButton(onClick = {
+                    // Сбрасываем всё для прохождения заново
+                    currentIndex = 0
+                    score = 0
+                    answered = false
+                    showScoreDialog = false
+                }) {
+                    Text("Пройти заново")
+                }
+            }
+        )
     }
 }
 
